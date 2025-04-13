@@ -14,45 +14,50 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
 </head>
 
-<body>
+<body onload="onDocLoaded()">
   <div class="header">
     <img src="images/Microsoft.png" alt="Logo" width="32" height="32" />
-    <span class="header__title">Copilot + AI 賦能 智慧工作新未來</span>
+    <span id="header_title" class="header__title"></span>
   </div>
 
   <div class="title">
-    <h1>Copilot + AI 賦能 智慧工作新未來</h1>
+    <h1 id="headerTitle"></h1>
   </div>
 
   <div class="main">
     <div class="main-block">
-      <h2>這裡有一些虛擬助理可以幫助你的事情:</h2>
+      <div id="selectLanguage"></div>
+      <select id="languageSelect" onchange="changeDocLang(this.value)">
+        <option value="en-US">English</option>
+        <option value="zh-TW" selected>繁體中文</option>
+      </select>
+      <h2 id="assistantHelp"></h2>
 
-      <div class="suggested-questions">
-              <button onclick="window.speak(`請介紹今日的活動`)">
-                請介紹今日的活動
-              </button>
-              <button onclick="window.speak(`請介紹微軟的Teams 即時口譯功能`)">
-                請介紹微軟的Teams 即時口譯功能
-              </button>           
-              <button onclick="window.speak(`請問關於Copilot的議題, 今日有哪些相關議程?`)">
-                請問關於Copilot的議題, 今日有哪些相關議程?
-              </button>
-              <button onclick="window.speak(`請用50個字介紹光寶科技`)">
-                請用50個字介紹光寶科技
-              </button>
-              <button onclick="window.speak(`Hãy giới thiệu LITE-ON Technology trong 50 từ.`)">
-                Hãy giới thiệu LITE-ON Technology trong 50 từ.
-              </button>
-              <button onclick="window.speak(`Please introduce Microsoft in 50 words`)">
-                Please introduce Microsoft in 50 words
-              </button>
-              <button onclick="window.speak(`マイクロソフトを50文字で紹介してください`)">
-                マイクロソフトを50文字で紹介してください
-              </button>
-              <button onclick="window.speak(`마이크로소프트를 50자로 소개해주세요`)">
-                마이크로소프트를 50자로 소개해주세요
-              </button>
+      <div class="suggested-questions" id="suggestedQuestions">
+        <!-- <button onclick="window.speak(`請介紹今日的活動`)">
+          請介紹今日的活動
+        </button>
+        <button onclick="window.speak(`請介紹微軟的Teams 即時口譯功能`)">
+          請介紹微軟的Teams 即時口譯功能
+        </button>           
+        <button onclick="window.speak(`請問關於Copilot的議題, 今日有哪些相關議程?`)">
+          請問關於Copilot的議題, 今日有哪些相關議程?
+        </button>
+        <button onclick="window.speak(`請用50個字介紹光寶科技`)">
+          請用50個字介紹光寶科技
+        </button> -->
+        <!-- <button onclick="window.speak(`Hãy giới thiệu LITE-ON Technology trong 50 từ.`)">
+          Hãy giới thiệu LITE-ON Technology trong 50 từ.
+        </button>
+        <button onclick="window.speak(`Please introduce Microsoft in 50 words`)">
+          Please introduce Microsoft in 50 words
+        </button>
+        <button onclick="window.speak(`マイクロソフトを50文字で紹介してください`)">
+          マイクロソフトを50文字で紹介してください
+        </button>
+        <button onclick="window.speak(`마이크로소프트를 50자로 소개해주세요`)">
+          마이크로소프트를 50자로 소개해주세요
+        </button> -->
       </div>
     </div>
 
@@ -83,13 +88,13 @@
   <div id="loginOverlay">
     <div id="gradientOverlay">
       <div class="loginCard">
-        <div class="loginCard__header">Login</div>
+        <!-- <div class="loginCard__header">Login</div> -->
 
-        <fluent-text-field appearance="outline" placeholder="user@email.com">Username</fluent-text-field>
-        <fluent-text-field appearance="outline" placeholder="****************">Password</fluent-text-field>
+        <!-- <fluent-text-field appearance="outline" placeholder="user@email.com">Username</fluent-text-field>
+        <fluent-text-field appearance="outline" placeholder="****************">Password</fluent-text-field> -->
 
         <button id="playVideo" onclick="window.startSession()">
-          <span id="playVideo__text" class="playVideo__text">Login</span>
+          <span id="playVideo__text" class="playVideo__text">Start</span>
         </button>
       </div>
     </div>

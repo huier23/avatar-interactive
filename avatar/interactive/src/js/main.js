@@ -12,7 +12,7 @@ var system_prompt = `您是一個專注於提供展覽會場資訊的 AI 助手�
 const TTSVoice = "en-US-CoraMultilingualNeural"
 
 // Fill your Azure cognitive services region here, e.g. westus2
-const CogSvcRegion = "westus2"
+const CogSvcRegion = "southeastasia"
 
 const IceServerUrl = "turn:relay.communication.microsoft.com:3478" // Fill your ICE server URL here, e.g. turn:turn.azure.com:3478
 let IceServerUsername
@@ -25,8 +25,48 @@ const TalkingAvatarStyle = "casual-sitting"
 // const TalkingAvatarStyle = "business"
 // The language detection engine supports a maximum of 4 languages
 supported_languages = ["en-US", "zh-TW"]
+let currentLang = "zh-TW"
 
 let token
+const suggestedQuestionKeys = {
+  'en-US': ['introduceMicrosoft'],
+  'zh-TW': ['introduceEvent', 'introduceTeams', 'copilotAgenda', 'introduceLiteon']
+}
+const i18nMap = {
+  "en-US": {
+    "headerTitle": "Copilot + AI Empowering the Future of Smart Work",
+    "selectLanguage": "Please select a language",
+    "assistantHelp": "Here are some tasks the virtual assistant can help you with:",
+    // "introduceEvent": "Please introduce today's event",
+    // "introduceTeams": "Please introduce Microsoft's Teams real-time interpretation feature",
+    // "copilotAgenda": "What are the related sessions about Copilot today?",
+    "introduceMicrosoft": "Please introduce Microsoft in 50 words",
+    "login": {
+      "usernamePlaceholder": "user@email.com",
+      "passwordPlaceholder": "****************",
+      "loginButton": "Login"
+    },
+    "micLabel": "Press the mic to start talking"
+  },
+  "zh-TW": {
+    "headerTitle": "Copilot + AI 賦能 智慧工作新未來",
+    "selectLanguage": "請選擇語言",
+    "assistantHelp": "這裡有一些虛擬助理可以幫助你的事情:",
+    "introduceEvent": "請介紹今日的活動",
+    "introduceTeams": "請介紹微軟的Teams 即時口譯功能",
+    "copilotAgenda": "請問關於Copilot的議題, 今日有哪些相關議程?",
+    "introduceLiteon": "請用50個字介紹光寶科技",
+
+    "login": {
+      "usernamePlaceholder": "user@email.com",
+      "passwordPlaceholder": "****************",
+      "loginButton": "登入"
+    },
+    "micLabel": "按下麥克風開始說話"
+  }
+}
+
+const getI18nConent = (key) => i18nMap[currentLang][key]
 
 const speechSynthesisConfig = SpeechSDK.SpeechConfig.fromEndpoint(new URL("wss://{region}.tts.speech.microsoft.com/cognitiveservices/websocket/v1?enableTalkingAvatar=true".replace("{region}", CogSvcRegion)))
 
@@ -35,6 +75,7 @@ var speechSynthesizer
 var avatarSynthesizer
 var peerConnection
 var previousAnimationFrameTimestamp = 0
+var sessionActive = false
 
 messages = [{ "role": "system", "content": system_prompt }];
 
@@ -139,9 +180,9 @@ async function generateText(prompt) {
 
   messages.push({
     role: 'user',
-    content: prompt
+    content: prompt,
+    lang: currentLang
   });
-
   let generatedText
   let products
   await fetch(`/api/message`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(messages) })
@@ -180,7 +221,22 @@ function connectToAvatarService() {
     }
     console.log("Event received: " + e.description + offsetMessage)
   }
+  sessionActive = true
+  console.log("Session State: " + sessionActive)
+}
 
+function disconnectAvatarService() {
+  if (avatarSynthesizer !== undefined) {
+      avatarSynthesizer.close()
+  }
+
+  if (speechRecognizer !== undefined) {
+      speechRecognizer.stopContinuousRecognitionAsync()
+      speechRecognizer.close()
+  }
+
+  sessionActive = false
+  console.log("Session State: " + false)
 }
 
 window.startSession = () => {
@@ -206,26 +262,6 @@ window.startSession = () => {
       connectToAvatarService()
       setupWebRTC()
     })
-}
-
-async function greeting() {
-  addToConversationHistory("你好，我是 Lisa。請問有什麼需要協助的？", "light")
-
-  let spokenText = "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='https://www.w3.org/2001/mstts' xml:lang='zh-TW'><voice xml:lang='zh-TW' xml:gender='Female' name='zh-CN-XiaochenMultilingualNeural'>你好，我是 Lisa。請問有什麼需要協助的？</voice></speak>"
-  avatarSynthesizer.speakSsmlAsync(spokenText, (result) => {
-    if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
-      console.log("Speech synthesized to speaker for text [ " + spokenText + " ]. Result ID: " + result.resultId)
-    } else {
-      console.log("Unable to speak text. Result ID: " + result.resultId)
-      if (result.reason === SpeechSDK.ResultReason.Canceled) {
-        let cancellationDetails = SpeechSDK.CancellationDetails.fromResult(result)
-        console.log(cancellationDetails.reason)
-        if (cancellationDetails.reason === SpeechSDK.CancellationReason.Error) {
-          console.log(cancellationDetails.errorDetails)
-        }
-      }
-    }
-  })
 }
 
 window.speak = (text) => {
@@ -270,7 +306,8 @@ window.speak = (text) => {
 }
 
 window.stopSession = () => {
-  speechSynthesizer.close()
+  // speechSynthesizer.close()
+  disconnectAvatarService()
 }
 
 window.startRecording = () => {
@@ -322,6 +359,26 @@ window.submitText = () => {
   window.speak(document.getElementById('textinput').currentValue);
 }
 
+
+async function greeting() {
+  addToConversationHistory("你好，我是 Lisa。請問有什麼需要協助的？", "light")
+
+  let spokenText = "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='https://www.w3.org/2001/mstts' xml:lang='zh-TW'><voice xml:lang='zh-TW' xml:gender='Female' name='zh-CN-XiaochenMultilingualNeural'>你好，我是 Lisa。請問有什麼需要協助的？</voice></speak>"
+  avatarSynthesizer.speakSsmlAsync(spokenText, (result) => {
+    if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
+      console.log("Speech synthesized to speaker for text [ " + spokenText + " ]. Result ID: " + result.resultId)
+    } else {
+      console.log("Unable to speak text. Result ID: " + result.resultId)
+      if (result.reason === SpeechSDK.ResultReason.Canceled) {
+        let cancellationDetails = SpeechSDK.CancellationDetails.fromResult(result)
+        console.log(cancellationDetails.reason)
+        if (cancellationDetails.reason === SpeechSDK.CancellationReason.Error) {
+          console.log(cancellationDetails.errorDetails)
+        }
+      }
+    }
+  })
+}
 
 function addToConversationHistory(item, historytype) {
   const list = document.getElementById('chathistory');
@@ -389,3 +446,48 @@ function makeBackgroundTransparent(timestamp) {
 
   window.requestAnimationFrame(makeBackgroundTransparent)
 }
+
+
+function changeDocLang(language) {
+  const languageSelect = document.getElementById('languageSelect');
+  currentLang = language
+  // Set the selected option
+  for (const option of languageSelect.options) {
+    option.selected = option.value === language;
+  }
+  updateContents()
+}
+
+
+function updateContents() {
+  const questionsContainer = document.getElementById('suggestedQuestions')
+  while (questionsContainer.firstChild) {
+    questionsContainer.removeChild(questionsContainer.firstChild);
+  }
+  suggestedQuestionKeys[currentLang].forEach((key) => {
+    const eleBtn = document.createElement('button')
+    const content = getI18nConent(key)
+    eleBtn.innerText = content
+    eleBtn.onclick = () => window.speak(content);
+    questionsContainer.appendChild(eleBtn)
+  })
+  // update header__title
+  const headerTitle = document.getElementById('header_title')
+  headerTitle.innerText = getI18nConent("headerTitle")
+  // update headerTitle
+  document.getElementById('headerTitle').innerText = getI18nConent("headerTitle")
+  // update selectLanguage
+  document.getElementById('selectLanguage').innerText = getI18nConent("selectLanguage")
+  
+  // update assistantHelp
+  document.getElementById('assistantHelp').innerText = getI18nConent("assistantHelp")
+
+  // update spokenText
+  document.getElementById('spokenText').innerText = getI18nConent("micLabel")
+}
+
+function onDocLoaded() {
+  updateContents()
+}
+
+

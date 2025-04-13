@@ -46,6 +46,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     messages = json.loads(req.get_body())
 
+    parsed_lang = messages[0].get("lang")
+
     response = chat_complete(messages, functions=functions, function_call="auto")
 
     products = []
@@ -70,13 +72,21 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         # print(function_name, function_args)
 
         # Add the assistant response and function response to the messages
-        messages.append(
-            {
-                "role": "system",
-                "content": "1. 如果內容有中文字的時候, 請在回應的時候, 避免第一個字是英文, 必須要是中文字開頭\n" +
-                           "2. 請在回應的時候, 請使用50個字以內回覆\n"
-            }
-        )
+        if parsed_lang == "zh-tw":
+            messages.append(
+                {
+                    "role": "system",
+                    "content": "1. 如果內容有中文字的時候, 請在回應的時候, 避免第一個字是英文, 必須要是中文字開頭\n" +
+                            "2. 請在回應的時候, 請使用50個字以內回覆\n"
+                }
+            )
+        if parsed_lang == "en-US":
+            messages.append(
+                {
+                    "role": "system",
+                    "content": "1. Please keep the response concise, within 50 words.\n"
+                }
+            )
 
         # Add the assistant response and function response to the messages
         messages.append(
@@ -187,6 +197,8 @@ def chat_complete(messages, functions, function_call="auto"):
         "function_call": function_call,
         "temperature": 0,
     }
+
+    logging.info(f"Received messages: {messages}")
 
     response = requests.post(url, headers=headers, data=json.dumps(data)).json()
 
