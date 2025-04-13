@@ -34,34 +34,18 @@
       <h2 id="assistantHelp"></h2>
 
       <div class="suggested-questions" id="suggestedQuestions">
-        <!-- <button onclick="window.speak(`請介紹今日的活動`)">
-          請介紹今日的活動
-        </button>
-        <button onclick="window.speak(`請介紹微軟的Teams 即時口譯功能`)">
-          請介紹微軟的Teams 即時口譯功能
-        </button>           
-        <button onclick="window.speak(`請問關於Copilot的議題, 今日有哪些相關議程?`)">
-          請問關於Copilot的議題, 今日有哪些相關議程?
-        </button>
-        <button onclick="window.speak(`請用50個字介紹光寶科技`)">
-          請用50個字介紹光寶科技
-        </button> -->
-        <!-- <button onclick="window.speak(`Hãy giới thiệu LITE-ON Technology trong 50 từ.`)">
-          Hãy giới thiệu LITE-ON Technology trong 50 từ.
-        </button>
-        <button onclick="window.speak(`Please introduce Microsoft in 50 words`)">
-          Please introduce Microsoft in 50 words
-        </button>
-        <button onclick="window.speak(`マイクロソフトを50文字で紹介してください`)">
-          マイクロソフトを50文字で紹介してください
-        </button>
-        <button onclick="window.speak(`마이크로소프트를 50자로 소개해주세요`)">
-          마이크로소프트를 50자로 소개해주세요
-        </button> -->
       </div>
-    </div>
 
+      <div>
+        <button onclick="window.refreshSession()">
+          Refresh
+        </button>
+      </div>
+
+
+    </div>
     <div class="avatar-block">
+
       <div id="remoteVideo">
       </div>
       <canvas id="canvas" width="720" height="1080" style="background-color: transparent;" hidden="hidden"></canvas>
